@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { createPageUrl } from "./utils";
-import { Bot, History, LogOut, User } from "lucide-react";
-import api from "./api"; // Our API utility
-
+import React, { useState } from "react"; // Added useState
+import { Link, useLocation } from "react-router-dom";
+import { createPageUrl } from "./utils"; // Changed to local utils
+import { Bot, History, FileText, Bell, Bookmark, Timer, LogOut, User as UserIcon, X, Loader2 } from "lucide-react"; // Renamed User to UserIcon
+import { User } from "./api"; // Import User from your new API layer
 import {
   Sidebar,
   SidebarContent,
@@ -11,12 +10,17 @@ import {
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenu,
+  SidebarMenuButton,
   SidebarMenuItem,
   SidebarHeader,
   SidebarFooter,
   SidebarProvider,
   SidebarTrigger,
-} from "./components/ui/sidebar";
+} from "./components/ui/sidebar"; // Changed to local path for shadcn component
+import { Button } from "./components/ui/button"; // Changed to local path
+import { Input } from "./components/ui/input"; // Changed to local path
+import { motion } from "framer-motion"; // Added motion
+import { toast } from "sonner"; // Added toast
 
 const navigationItems = [
   {
@@ -33,39 +37,95 @@ const navigationItems = [
   }
 ];
 
-export default function Layout({ children }) {
+const personalItems = [
+  {
+    title: "Personal Notes",
+    url: createPageUrl("Notes"),
+    icon: FileText,
+    color: "hover:text-green-400"
+  },
+  {
+    title: "Personal Reminders",
+    url: createPageUrl("Reminders"),
+    icon: Bell,
+    color: "hover:text-orange-400"
+  },
+  {
+    title: "Quick Links",
+    url: createPageUrl("Bookmarks"),
+    icon: Bookmark,
+    color: "hover:text-cyan-400"
+  },
+  {
+    title: "Focus Timer",
+    url: createPageUrl("FocusTimer"),
+    icon: Timer,
+    color: "hover:text-pink-400"
+  }
+];
+
+export default function Layout({ children, currentPageName }) {
   const location = useLocation();
-  const navigate = useNavigate();
-  const [user, setUser] = useState(null);
+  const [user, setUser] = React.useState(null);
+  const [showAuthModal, setShowAuthModal] = React.useState(false);
 
-  useEffect(() => {
-    // Get user from localStorage on component mount
-    const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
-    
-    if (token && userData) {
+  React.useEffect(() => {
+    const loadUser = async () => {
       try {
-        setUser(JSON.parse(userData));
+        const currentUser = await User.me();
+        setUser(currentUser);
       } catch (error) {
-        console.error('Error parsing user data:', error);
-        // Clear invalid data
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        console.log("User not authenticated:", error.message);
+        setUser(null); // Ensure user state is null if not authenticated
+        // Show auth modal only if not on Dashboard and not already showing
+        if (location.pathname !== createPageUrl("Dashboard") && !showAuthModal) {
+            setShowAuthModal(true);
+        }
       }
-    }
-  }, []);
+    };
+    loadUser();
+  }, [location.pathname, showAuthModal]); // Added showAuthModal to dependencies
 
-  const handleLogout = () => {
-    // Clear localStorage
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setUser(null);
-    // Redirect to login
-    navigate('/login');
+  const handleLogout = async () => {
+    try {
+      await User.logout();
+      setUser(null);
+    } catch (error) {
+      console.error("Error logging out:", error);
+    }
+  };
+
+  const handleLoginRegisterSuccess = (loggedInUser) => {
+    setUser(loggedInUser);
+    setShowAuthModal(false);
   };
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-200">
+      <style>{`
+        :root {
+          --background: 222.2 84% 4.9%;
+          --foreground: 210 40% 98%;
+          --card: 222.2 84% 4.9%;
+          --card-foreground: 210 40% 98%;
+          --popover: 222.2 84% 4.9%;
+          --popover-foreground: 210 40% 98%;
+          --primary: 217.2 91.2% 59.8%;
+          --primary-foreground: 222.2 84% 4.9%;
+          --secondary: 217.2 32.6% 17.5%;
+          --secondary-foreground: 210 40% 98%;
+          --muted: 217.2 32.6% 17.5%;
+          --muted-foreground: 215 20.2% 65.1%;
+          --accent: 217.2 32.6% 17.5%;
+          --accent-foreground: 210 40% 98%;
+          --destructive: 0 62.8% 30.6%;
+          --destructive-foreground: 210 40% 98%;
+          --border: 217.2 32.6% 17.5%;
+          --input: 217.2 32.6% 17.5%;
+          --ring: 224.3 76.3% 94.0%;
+        }
+      `}</style>
+      
       <SidebarProvider>
         <div className="flex w-full min-h-screen">
           <Sidebar className="border-r border-gray-800 bg-gray-900 text-gray-300">
@@ -85,24 +145,55 @@ export default function Layout({ children }) {
             </SidebarHeader>
             
             <SidebarContent className="p-4">
+              {/* AI Assistant Section */}
               <SidebarGroup>
-                <SidebarGroupLabel className="text-white text-xs font-semibold uppercase tracking-wider px-2 py-2">
+                <SidebarGroupLabel className="text-gray-400 text-xs font-semibold uppercase tracking-wider px-2 py-2">
                   AI Assistant
                 </SidebarGroupLabel>
                 <SidebarGroupContent>
                   <SidebarMenu>
                     {navigationItems.map((item) => (
                       <SidebarMenuItem key={item.title}>
-                        <Link 
-                          to={item.url} 
-                          className={`flex items-center gap-3 px-3 py-2 transition-all duration-200 rounded-lg mb-1 font-medium
-                            ${item.color} 
-                            ${location.pathname === item.url ? 'bg-gray-800 text-blue-400' : 'text-gray-300 hover:bg-gray-800'}`
-                          }
+                        <SidebarMenuButton 
+                          asChild 
+                          className={`hover:bg-gray-800 ${item.color} transition-all duration-200 rounded-lg mb-1 ${
+                            location.pathname === item.url ? 'bg-gray-800 text-blue-400' : 'text-gray-300'
+                          }`}
                         >
-                          <item.icon className="w-4 h-4" />
-                          <span>{item.title}</span>
-                        </Link>
+                          <Link to={item.url} className="flex items-center gap-3 px-3 py-2">
+                            <item.icon className="w-4 h-4" />
+                            <span className="font-medium">{item.title}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+
+              {/* Personal Productivity Section */}
+              <SidebarGroup>
+                <SidebarGroupLabel className="text-gray-400 text-xs font-semibold uppercase tracking-wider px-2 py-2">
+                  Personal Productivity
+                </SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {personalItems.map((item) => (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton 
+                          asChild 
+                          className={`hover:bg-gray-800 ${item.color} transition-all duration-200 rounded-lg mb-1 ${
+                            location.pathname === item.url ? 'bg-gray-800' : 'text-gray-300'
+                          } ${location.pathname === item.url && item.title === 'Personal Notes' ? 'text-green-400' : ''}
+                          ${location.pathname === item.url && item.title === 'Personal Reminders' ? 'text-orange-400' : ''}
+                          ${location.pathname === item.url && item.title === 'Quick Links' ? 'text-cyan-400' : ''}
+                          ${location.pathname === item.url && item.title === 'Focus Timer' ? 'text-pink-400' : ''}`}
+                        >
+                          <Link to={item.url} className="flex items-center gap-3 px-3 py-2">
+                            <item.icon className="w-4 h-4" />
+                            <span className="font-medium">{item.title}</span>
+                          </Link>
+                        </SidebarMenuButton>
                       </SidebarMenuItem>
                     ))}
                   </SidebarMenu>
@@ -115,7 +206,7 @@ export default function Layout({ children }) {
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center">
-                      <User className="w-4 h-4 text-white" />
+                      <UserIcon className="w-4 h-4 text-white" /> {/* Renamed from User to UserIcon */}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-white text-sm truncate">{user.fullName}</p>
@@ -131,13 +222,13 @@ export default function Layout({ children }) {
                   </button>
                 </div>
               ) : (
-                <Link
-                  to="/login"
+                <button
+                  onClick={() => setShowAuthModal(true)}
                   className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-400 hover:text-blue-400 hover:bg-gray-800 rounded-lg transition-all duration-200"
                 >
-                  <User className="w-4 h-4" />
+                  <UserIcon className="w-4 h-4" /> {/* Renamed from User to UserIcon */}
                   Sign In
-                </Link>
+                </button>
               )}
             </SidebarFooter>
           </Sidebar>
@@ -156,6 +247,12 @@ export default function Layout({ children }) {
           </main>
         </div>
       </SidebarProvider>
+
+      {showAuthModal && ( // Only render if showAuthModal is true
+        <AuthModal onClose={() => setShowAuthModal(false)} onLoginRegisterSuccess={handleLoginRegisterSuccess} />
+      )}
     </div>
   );
 }
+
+// AuthModal Component - now a separate file (src/components/auth/AuthModal.jsx)
