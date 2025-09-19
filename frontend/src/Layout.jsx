@@ -1,7 +1,7 @@
-import React, { useState } from "react"; // Added useState
+import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { createPageUrl } from "./utils"; // Changed to local utils
-import { Bot, History, FileText, Bell, Bookmark, Timer, LogOut, User as UserIcon, X, Loader2 } from "lucide-react"; // Renamed User to UserIcon
+import { createPageUrl } from "./utils";
+import { Bot, History, LogOut, User as UserIcon, X, Loader2 } from "lucide-react";
 import { User } from "./api"; // Import User from your new API layer
 import {
   Sidebar,
@@ -16,11 +16,12 @@ import {
   SidebarFooter,
   SidebarProvider,
   SidebarTrigger,
-} from "./components/ui/sidebar"; // Changed to local path for shadcn component
-import { Button } from "./components/ui/button"; // Changed to local path
-import { Input } from "./components/ui/input"; // Changed to local path
-import { motion } from "framer-motion"; // Added motion
-import { toast } from "sonner"; // Added toast
+} from "./components/ui/sidebar";
+import { Button } from "./components/ui/button";
+import { Input } from "./components/ui/input";
+import { motion } from "framer-motion";
+import { toast } from "sonner";
+import AuthModal from "./components/auth/AuthModal"; // Import the AuthModal
 
 const navigationItems = [
   {
@@ -37,32 +38,7 @@ const navigationItems = [
   }
 ];
 
-const personalItems = [
-  {
-    title: "Personal Notes",
-    url: createPageUrl("Notes"),
-    icon: FileText,
-    color: "hover:text-green-400"
-  },
-  {
-    title: "Personal Reminders",
-    url: createPageUrl("Reminders"),
-    icon: Bell,
-    color: "hover:text-orange-400"
-  },
-  {
-    title: "Quick Links",
-    url: createPageUrl("Bookmarks"),
-    icon: Bookmark,
-    color: "hover:text-cyan-400"
-  },
-  {
-    title: "Focus Timer",
-    url: createPageUrl("FocusTimer"),
-    icon: Timer,
-    color: "hover:text-pink-400"
-  }
-];
+// Removed personalItems as per requirement
 
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
@@ -77,14 +53,14 @@ export default function Layout({ children, currentPageName }) {
       } catch (error) {
         console.log("User not authenticated:", error.message);
         setUser(null); // Ensure user state is null if not authenticated
-        // Show auth modal only if not on Dashboard and not already showing
-        if (location.pathname !== createPageUrl("Dashboard") && !showAuthModal) {
+        // Show auth modal only if not on Dashboard/History and not already showing
+        if (![createPageUrl("Dashboard"), createPageUrl("History")].includes(location.pathname) && !showAuthModal) {
             setShowAuthModal(true);
         }
       }
     };
     loadUser();
-  }, [location.pathname, showAuthModal]); // Added showAuthModal to dependencies
+  }, [location.pathname, showAuthModal]);
 
   const handleLogout = async () => {
     try {
@@ -170,35 +146,7 @@ export default function Layout({ children, currentPageName }) {
                   </SidebarMenu>
                 </SidebarGroupContent>
               </SidebarGroup>
-
-              {/* Personal Productivity Section */}
-              <SidebarGroup>
-                <SidebarGroupLabel className="text-gray-400 text-xs font-semibold uppercase tracking-wider px-2 py-2">
-                  Personal Productivity
-                </SidebarGroupLabel>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {personalItems.map((item) => (
-                      <SidebarMenuItem key={item.title}>
-                        <SidebarMenuButton 
-                          asChild 
-                          className={`hover:bg-gray-800 ${item.color} transition-all duration-200 rounded-lg mb-1 ${
-                            location.pathname === item.url ? 'bg-gray-800' : 'text-gray-300'
-                          } ${location.pathname === item.url && item.title === 'Personal Notes' ? 'text-green-400' : ''}
-                          ${location.pathname === item.url && item.title === 'Personal Reminders' ? 'text-orange-400' : ''}
-                          ${location.pathname === item.url && item.title === 'Quick Links' ? 'text-cyan-400' : ''}
-                          ${location.pathname === item.url && item.title === 'Focus Timer' ? 'text-pink-400' : ''}`}
-                        >
-                          <Link to={item.url} className="flex items-center gap-3 px-3 py-2">
-                            <item.icon className="w-4 h-4" />
-                            <span className="font-medium">{item.title}</span>
-                          </Link>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    ))}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
+              {/* Removed Personal Productivity Section */}
             </SidebarContent>
 
             <SidebarFooter className="border-t border-gray-800 p-4">
@@ -206,7 +154,7 @@ export default function Layout({ children, currentPageName }) {
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center">
-                      <UserIcon className="w-4 h-4 text-white" /> {/* Renamed from User to UserIcon */}
+                      <UserIcon className="w-4 h-4 text-white" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-white text-sm truncate">{user.fullName}</p>
@@ -226,7 +174,7 @@ export default function Layout({ children, currentPageName }) {
                   onClick={() => setShowAuthModal(true)}
                   className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-400 hover:text-blue-400 hover:bg-gray-800 rounded-lg transition-all duration-200"
                 >
-                  <UserIcon className="w-4 h-4" /> {/* Renamed from User to UserIcon */}
+                  <UserIcon className="w-4 h-4" />
                   Sign In
                 </button>
               )}
@@ -248,11 +196,9 @@ export default function Layout({ children, currentPageName }) {
         </div>
       </SidebarProvider>
 
-      {showAuthModal && ( // Only render if showAuthModal is true
+      {showAuthModal && (
         <AuthModal onClose={() => setShowAuthModal(false)} onLoginRegisterSuccess={handleLoginRegisterSuccess} />
       )}
     </div>
   );
 }
-
-// AuthModal Component - now a separate file (src/components/auth/AuthModal.jsx)
