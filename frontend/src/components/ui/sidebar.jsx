@@ -1,7 +1,6 @@
-import * as React from "react"
-import { Slot } from "@radix-ui/react-slot"
+import * as React from "react";
+import { Slot } from "@radix-ui/react-slot";
 import { cva } from "class-variance-authority";
-
 import { cn } from "../../lib/utils"; // Corrected path
 
 // Context for managing sidebar state
@@ -34,21 +33,21 @@ const Sidebar = React.forwardRef(({ className, ...props }, ref) => {
 
   return (
     <>
-      {/* Overlay for mobile */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/50 md:hidden"
+          className="fixed inset-0 z-40 bg-black/50"
           onClick={() => setIsOpen(false)}
         />
       )}
       <aside
-        ref__={ref}
+        ref={ref}
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 -translate-x-full transition-transform duration-300 ease-in-out md:translate-x-0",
-          isOpen && "translate-x-0", // Slide in for mobile
-          "flex flex-col", // Ensure it's a flex column
+          "fixed inset-y-0 left-0 z-50 w-64 -translate-x-full transition-transform duration-300 ease-in-out",
+          isOpen && "translate-x-0",
+          "flex flex-col",
           className
         )}
+        aria-hidden={!isOpen}
         {...props}
       />
     </>
@@ -56,34 +55,21 @@ const Sidebar = React.forwardRef(({ className, ...props }, ref) => {
 });
 Sidebar.displayName = "Sidebar";
 
-
 // SidebarHeader
 const SidebarHeader = React.forwardRef(({ className, ...props }, ref) => (
-  <div
-    ref__={ref}
-    className={cn("flex items-center p-4", className)}
-    {...props}
-  />
+  <div ref={ref} className={cn("flex items-center p-4", className)} {...props} />
 ));
 SidebarHeader.displayName = "SidebarHeader";
 
 // SidebarContent
 const SidebarContent = React.forwardRef(({ className, ...props }, ref) => (
-  <div
-    ref__={ref}
-    className={cn("flex-1 overflow-y-auto", className)}
-    {...props}
-  />
+  <div ref={ref} className={cn("flex-1 overflow-y-auto", className)} {...props} />
 ));
 SidebarContent.displayName = "SidebarContent";
 
 // SidebarFooter
 const SidebarFooter = React.forwardRef(({ className, ...props }, ref) => (
-  <div
-    ref__={ref}
-    className={cn("mt-auto p-4", className)}
-    {...props}
-  />
+  <div ref={ref} className={cn("mt-auto p-4", className)} {...props} />
 ));
 SidebarFooter.displayName = "SidebarFooter";
 
@@ -92,8 +78,12 @@ const SidebarTrigger = React.forwardRef(({ className, children, ...props }, ref)
   const { toggle } = useSidebar();
   return (
     <button
-      ref__={ref}
-      className={cn("inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50", "h-9 w-9", className)}
+      ref={ref}
+      className={cn(
+        "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
+        "h-9 w-9",
+        className
+      )}
       onClick={toggle}
       {...props}
     >
@@ -118,27 +108,19 @@ const SidebarTrigger = React.forwardRef(({ className, children, ...props }, ref)
 });
 SidebarTrigger.displayName = "SidebarTrigger";
 
-// SidebarMenu (ul equivalent)
+// SidebarMenu
 const SidebarMenu = React.forwardRef(({ className, ...props }, ref) => (
-  <ul
-    ref__={ref}
-    className={cn("space-y-1", className)}
-    {...props}
-  />
+  <ul ref={ref} className={cn("space-y-1", className)} {...props} />
 ));
 SidebarMenu.displayName = "SidebarMenu";
 
-// SidebarMenuItem (li equivalent)
+// SidebarMenuItem
 const SidebarMenuItem = React.forwardRef(({ className, ...props }, ref) => (
-  <li
-    ref__={ref}
-    className={cn("relative", className)}
-    {...props}
-  />
+  <li ref={ref} className={cn("relative", className)} {...props} />
 ));
 SidebarMenuItem.displayName = "SidebarMenuItem";
 
-// SidebarMenuButton (button or link equivalent for menu item)
+// SidebarMenuButton
 const sidebarMenuButtonVariants = cva(
   "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
   {
@@ -157,33 +139,34 @@ const sidebarMenuButtonVariants = cva(
   }
 );
 
-const SidebarMenuButton = React.forwardRef(({ className, variant, size, asChild = false, ...props }, ref) => {
-  const Comp = asChild ? Slot : "button";
-  return (
-    <Comp
-      className={cn(sidebarMenuButtonVariants({ variant, size, className }))}
-      ref__={ref}
-      {...props}
-    />
-  );
-});
+const SidebarMenuButton = React.forwardRef(
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : "button";
+    return (
+      <Comp
+        className={cn(sidebarMenuButtonVariants({ variant, size, className }))}
+        ref={ref}
+        {...props}
+      />
+    );
+  }
+);
 SidebarMenuButton.displayName = "SidebarMenuButton";
 
 // SidebarGroup
 const SidebarGroup = React.forwardRef(({ className, ...props }, ref) => (
-  <div
-    ref__={ref}
-    className={cn("mb-4 last:mb-0", className)}
-    {...props}
-  />
+  <div ref={ref} className={cn("mb-4 last:mb-0", className)} {...props} />
 ));
 SidebarGroup.displayName = "SidebarGroup";
 
 // SidebarGroupLabel
 const SidebarGroupLabel = React.forwardRef(({ className, ...props }, ref) => (
   <h4
-    ref__={ref}
-    className={cn("text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2", className)}
+    ref={ref}
+    className={cn(
+      "text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2",
+      className
+    )}
     {...props}
   />
 ));
@@ -191,14 +174,9 @@ SidebarGroupLabel.displayName = "SidebarGroupLabel";
 
 // SidebarGroupContent
 const SidebarGroupContent = React.forwardRef(({ className, ...props }, ref) => (
-  <div
-    ref__={ref}
-    className={cn("space-y-1", className)}
-    {...props}
-  />
+  <div ref={ref} className={cn("space-y-1", className)} {...props} />
 ));
 SidebarGroupContent.displayName = "SidebarGroupContent";
-
 
 export {
   Sidebar,
