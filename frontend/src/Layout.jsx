@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "./utils";
-import { Bot, History, LogOut, User as UserIcon, X, Loader2 } from "lucide-react";
-import { User } from "./api"; // Import User from your new API layer
+import { Bot, History, LogOut, User } from "lucide-react";
+import { useAuth } from "./context/AuthContext";
+
 import {
   Sidebar,
   SidebarContent,
@@ -10,18 +11,12 @@ import {
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
   SidebarHeader,
   SidebarFooter,
   SidebarProvider,
   SidebarTrigger,
 } from "./components/ui/sidebar";
-import { Button } from "./components/ui/button";
-import { Input } from "./components/ui/input";
-import { motion } from "framer-motion";
-import { toast } from "sonner";
-import AuthModal from "./components/auth/AuthModal"; // Import the AuthModal
 
 const navigationItems = [
   {
@@ -38,70 +33,20 @@ const navigationItems = [
   }
 ];
 
-// Removed personalItems as per requirement
-
-export default function Layout({ children, currentPageName }) {
+export default function Layout({ children }) {
   const location = useLocation();
-  const [user, setUser] = React.useState(null);
-  const [showAuthModal, setShowAuthModal] = React.useState(false);
-
-  React.useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const currentUser = await User.me();
-        setUser(currentUser);
-      } catch (error) {
-        console.log("User not authenticated:", error.message);
-        setUser(null); // Ensure user state is null if not authenticated
-        // Show auth modal only if not on Dashboard/History and not already showing
-        if (![createPageUrl("Dashboard"), createPageUrl("History")].includes(location.pathname) && !showAuthModal) {
-            setShowAuthModal(true);
-        }
-      }
-    };
-    loadUser();
-  }, [location.pathname, showAuthModal]);
+  const { user, logout } = useAuth();
 
   const handleLogout = async () => {
     try {
-      await User.logout();
-      setUser(null);
+      await logout();
     } catch (error) {
       console.error("Error logging out:", error);
     }
   };
 
-  const handleLoginRegisterSuccess = (loggedInUser) => {
-    setUser(loggedInUser);
-    setShowAuthModal(false);
-  };
-
   return (
     <div className="min-h-screen bg-gray-900 text-gray-200">
-      <style>{`
-        :root {
-          --background: 222.2 84% 4.9%;
-          --foreground: 210 40% 98%;
-          --card: 222.2 84% 4.9%;
-          --card-foreground: 210 40% 98%;
-          --popover: 222.2 84% 4.9%;
-          --popover-foreground: 210 40% 98%;
-          --primary: 217.2 91.2% 59.8%;
-          --primary-foreground: 222.2 84% 4.9%;
-          --secondary: 217.2 32.6% 17.5%;
-          --secondary-foreground: 210 40% 98%;
-          --muted: 217.2 32.6% 17.5%;
-          --muted-foreground: 215 20.2% 65.1%;
-          --accent: 217.2 32.6% 17.5%;
-          --accent-foreground: 210 40% 98%;
-          --destructive: 0 62.8% 30.6%;
-          --destructive-foreground: 210 40% 98%;
-          --border: 217.2 32.6% 17.5%;
-          --input: 217.2 32.6% 17.5%;
-          --ring: 224.3 76.3% 94.0%;
-        }
-      `}</style>
-      
       <SidebarProvider>
         <div className="flex w-full min-h-screen">
           <Sidebar className="border-r border-gray-800 bg-gray-900 text-gray-300">
@@ -121,32 +66,29 @@ export default function Layout({ children, currentPageName }) {
             </SidebarHeader>
             
             <SidebarContent className="p-4">
-              {/* AI Assistant Section */}
               <SidebarGroup>
-                <SidebarGroupLabel className="text-gray-400 text-xs font-semibold uppercase tracking-wider px-2 py-2">
+                <SidebarGroupLabel className="text-white text-xs font-semibold uppercase tracking-wider px-2 py-2">
                   AI Assistant
                 </SidebarGroupLabel>
                 <SidebarGroupContent>
                   <SidebarMenu>
                     {navigationItems.map((item) => (
                       <SidebarMenuItem key={item.title}>
-                        <SidebarMenuButton 
-                          asChild 
-                          className={`hover:bg-gray-800 ${item.color} transition-all duration-200 rounded-lg mb-1 ${
-                            location.pathname === item.url ? 'bg-gray-800 text-blue-400' : 'text-gray-300'
-                          }`}
+                        <Link 
+                          to={item.url} 
+                          className={`flex items-center gap-3 px-3 py-2 transition-all duration-200 rounded-lg mb-1 font-medium
+                            ${item.color} 
+                            ${location.pathname === item.url ? 'bg-gray-800 text-blue-400' : 'text-gray-300 hover:bg-gray-800'}`
+                          }
                         >
-                          <Link to={item.url} className="flex items-center gap-3 px-3 py-2">
-                            <item.icon className="w-4 h-4" />
-                            <span className="font-medium">{item.title}</span>
-                          </Link>
-                        </SidebarMenuButton>
+                          <item.icon className="w-4 h-4" />
+                          <span>{item.title}</span>
+                        </Link>
                       </SidebarMenuItem>
                     ))}
                   </SidebarMenu>
                 </SidebarGroupContent>
               </SidebarGroup>
-              {/* Removed Personal Productivity Section */}
             </SidebarContent>
 
             <SidebarFooter className="border-t border-gray-800 p-4">
@@ -154,7 +96,7 @@ export default function Layout({ children, currentPageName }) {
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center">
-                      <UserIcon className="w-4 h-4 text-white" />
+                      <User className="w-4 h-4 text-white" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-white text-sm truncate">{user.fullName}</p>
@@ -170,13 +112,13 @@ export default function Layout({ children, currentPageName }) {
                   </button>
                 </div>
               ) : (
-                <button
-                  onClick={() => setShowAuthModal(true)}
+                <Link
+                  to="/login"
                   className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-400 hover:text-blue-400 hover:bg-gray-800 rounded-lg transition-all duration-200"
                 >
-                  <UserIcon className="w-4 h-4" />
+                  <User className="w-4 h-4" />
                   Sign In
-                </button>
+                </Link>
               )}
             </SidebarFooter>
           </Sidebar>
@@ -195,10 +137,6 @@ export default function Layout({ children, currentPageName }) {
           </main>
         </div>
       </SidebarProvider>
-
-      {showAuthModal && (
-        <AuthModal onClose={() => setShowAuthModal(false)} onLoginRegisterSuccess={handleLoginRegisterSuccess} />
-      )}
     </div>
   );
 }
