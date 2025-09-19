@@ -18,7 +18,7 @@ app.use(express.urlencoded({ extended: false })); // Body parser for URL-encoded
 
 // Configure CORS
 const allowedOrigins = [
-  'http://localhost:5173', // For local frontend development
+  'https://dual-agents-ab.vercel.app/', // For local frontend development
   // ADD YOUR DEPLOYED VERCEL FRONTEND URL HERE AFTER DEPLOYMENT
   // e.g., 'https://dual-agents-ab-frontend-mern.vercel.app'
 ];
