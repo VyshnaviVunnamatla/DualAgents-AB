@@ -1,9 +1,13 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
-import routes from './src/routes/index.js'; // Import the central route handler
+import connectDB from './src/config/db.js'; // MongoDB connection
+import routes from './src/routes/index.js'; // Central route handler
 
 dotenv.config();
+
+// Connect to Database
+connectDB();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -15,12 +19,12 @@ app.use(express.urlencoded({ extended: false })); // Body parser for URL-encoded
 // Configure CORS
 const allowedOrigins = [
   'http://localhost:5173', // For local frontend development
-  'https://dual-agents-ab-frontend.vercel.app' // Your deployed Vercel frontend URL (UPDATE THIS)
+  // ADD YOUR DEPLOYED VERCEL FRONTEND URL HERE AFTER DEPLOYMENT
+  // e.g., 'https://dual-agents-ab-frontend-mern.vercel.app'
 ];
 
 app.use(cors({
   origin: (origin, callback) => {
-    // allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     if (allowedOrigins.indexOf(origin) === -1) {
       const msg = `The CORS policy for this site does not allow access from the specified Origin.`;
@@ -28,7 +32,7 @@ app.use(cors({
     }
     return callback(null, true);
   },
-  credentials: true, // Allow cookies/authorization headers
+  credentials: true, // Allow cookies/authorization headers (though not strictly needed for JWTs)
 }));
 
 // API Routes
