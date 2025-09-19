@@ -1,8 +1,8 @@
-import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPageUrl } from "./utils";
 import { Bot, History, LogOut, User } from "lucide-react";
-import { useAuth } from "./context/AuthContext";
+import api from "./api"; // Our API utility
 
 import {
   Sidebar,
@@ -35,14 +35,33 @@ const navigationItems = [
 
 export default function Layout({ children }) {
   const location = useLocation();
-  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const [user, setUser] = useState(null);
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (error) {
-      console.error("Error logging out:", error);
+  useEffect(() => {
+    // Get user from localStorage on component mount
+    const token = localStorage.getItem('token');
+    const userData = localStorage.getItem('user');
+    
+    if (token && userData) {
+      try {
+        setUser(JSON.parse(userData));
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+        // Clear invalid data
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
     }
+  }, []);
+
+  const handleLogout = () => {
+    // Clear localStorage
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+    // Redirect to login
+    navigate('/login');
   };
 
   return (
