@@ -12,9 +12,14 @@ export const invokeLLM = async ({ prompt, add_context_from_internet, response_js
   }
 
   try {
-    // --- CHANGE STARTS HERE ---
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro' }); // ENSURE THIS IS 'gemini-pro' or 'gemini-1.0-pro'
-    // --- CHANGE ENDS HERE ---
+    // --- IMPORTANT CHANGE HERE ---
+    // Let's try a specific, known-to-be-available text-only model version
+    // Sometimes the simple 'gemini-pro' doesn't map correctly to v1beta in all environments
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.0-pro' }); 
+    // If 'gemini-1.0-pro' still fails, try 'gemini-pro-vision' if your use case involves images,
+    // or 'gemini-1.0-pro-001' which is an older but sometimes more reliable text-only model.
+    // The error specifically points to 'models/gemini-pro' not being found, so a more specific version might help.
+    // --- END IMPORTANT CHANGE ---
 
     let fullPrompt = prompt;
     let systemInstruction = 'You are a helpful AI assistant. Provide concise and accurate answers.';
