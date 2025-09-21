@@ -33,7 +33,7 @@ api.interceptors.response.use(
       originalRequest._retry = true; // Mark as retried to prevent infinite loops
       // Unauthorized. Could be token expired or invalid.
       // Log out user and redirect to login
-      localStorage.removeItem('user');
+      localStorage.removeItem('user'); // THIS IS THE KEY FIX
       toast.error("Session expired or unauthorized. Please log in again.");
       setTimeout(() => {
         window.location.reload(); // Reloads the page, Layout will prompt login
