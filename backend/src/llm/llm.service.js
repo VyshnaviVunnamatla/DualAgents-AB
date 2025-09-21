@@ -12,7 +12,9 @@ export const invokeLLM = async ({ prompt, add_context_from_internet, response_js
   }
 
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro' }); // Use gemini-pro model
+    // --- CHANGE STARTS HERE ---
+    const model = genAI.getGenerativeModel({ model: 'gemini-pro' }); // ENSURE THIS IS 'gemini-pro' or 'gemini-1.0-pro'
+    // --- CHANGE ENDS HERE ---
 
     let fullPrompt = prompt;
     let systemInstruction = 'You are a helpful AI assistant. Provide concise and accurate answers.';
