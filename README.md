@@ -118,22 +118,39 @@ Your application should now be running at:
 ## 🧩 Folder Structure
 
 DualAgents-AB/
+
 │
+
 ├── frontend/           # React/Vite Frontend
+
 │   ├── src/
+
 │   │   ├── components/ # UI Components
+
 │   │   ├── pages/      # Page-level logic
+
 │   │   ├── services/   # API handling
+
 │   │   └── App.jsx
+
 │   └── vite.config.js
+
 │
+
 ├── backend/            # Node.js Express API
+
 │   ├── routes/         # API endpoints
+
 │   ├── controllers/    # Business logic
+
 │   ├── models/         # Data schema / structure
+
 │   ├── utils/          # Helper functions
+
 │   └── server.js
+
 │
+
 └── README.md
 
 ---
